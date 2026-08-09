@@ -1,11 +1,4 @@
-"""
-Shared device inventory for the automation toolkit.
- 
-Connection details that are safe to commit (host, SSH quirks) live
-in devices.yaml. Credentials come from environment variables loaded
-from a local .env file — which is gitignored — so real passwords
-never end up in the repo. See .env.example for the expected format.
-"""
+
  
 import os
 import yaml
@@ -25,8 +18,7 @@ def load_devices(path="devices.yaml"):
  
     if not NET_USERNAME or not NET_PASSWORD:
         raise RuntimeError(
-            "NET_USERNAME / NET_PASSWORD are not set. Copy .env.example "
-            "to .env and fill in your real credentials."
+            
         )
  
     for device in devices:
@@ -42,13 +34,7 @@ def find_device(devices, host):
  
  
 def build_ad_hoc_device(host):
-    """
-    Build device connection details for a host that isn't in
-    devices.yaml — used for devices found via network scanning.
-    Uses the same shared credentials, with permissive legacy SSH
-    algorithm support since we don't know this device's quirks
-    ahead of time.
-    """
+    
     return {
         "device_type": "cisco_ios",
         "host": host,
