@@ -4,7 +4,6 @@ Network Automation Dashboard
 A local web UI for the toolkit. Shows device status, lets you scan
 a subnet to discover devices, and trigger backups/compliance
 checks/config pushes from the browser instead of the CLI.
-Stage 4 of the network automation toolkit.
  
 Run with: python app.py
 Then open http://127.0.0.1:5000 in your browser.
@@ -27,10 +26,7 @@ SCAN_MAX_HOSTS = 512  # safety cap so a typo like /8 can't hang the server
  
 def is_device_online(host, port=22, timeout=3, attempts=2):
     """
-    TCP check — is the SSH port open on this device right now?
-    Tries more than once: a routed device (like SW1, reached via R1)
-    can be slow to respond on the very first attempt while ARP
-    resolves across the hop, even though it's genuinely reachable.
+    TCP check 
     """
     for _ in range(attempts):
         try:
@@ -44,7 +40,7 @@ def is_device_online(host, port=22, timeout=3, attempts=2):
 def resolve_device(host):
     """
     Look up a host's connection details — from devices.yaml if it's
-    a known device, or build them on the fly (shared credentials)
+    a known device, or build them on the fly 
     if it was found via network scanning instead.
     """
     return find_device(DEVICES, host) or build_ad_hoc_device(host)
