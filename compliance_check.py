@@ -2,12 +2,7 @@
 Config Compliance / Drift Checker
 -----------------------------------
 Compares each device's live running-config against a saved baseline
-("golden config") and reports any differences. Stage 3 of the
-network automation toolkit.
- 
-Usage:
-    python compliance_check.py --set-baseline   # save current config as baseline
-    python compliance_check.py                  # compare live config vs baseline
+ and reports any differences. 
 """
  
 from netmiko import ConnectHandler
@@ -23,9 +18,7 @@ BASELINE_DIR = "baselines"
 def get_live_config(device):
     """
     Returns a combined snapshot of the device's state: running-config
-    plus VLAN database output. VLANs on Catalyst-style switches live in
-    a separate database (vlan.dat) and don't appear in running-config,
-    so relying on running-config alone would miss VLAN-level drift.
+    plus VLAN database output.
     """
     connection = ConnectHandler(**device)
     running_config = connection.send_command("show running-config")
@@ -51,9 +44,6 @@ def set_baseline(device):
 def check_compliance(device):
     """
     Compare live config against the saved baseline.
-    Returns (diff_lines, error_message) — diff_lines is a list (empty
-    if no drift), error_message is set only if something went wrong
-    (e.g. no baseline exists yet).
     """
     path = baseline_path(device["host"])
     if not os.path.exists(path):
