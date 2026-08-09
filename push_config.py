@@ -1,11 +1,4 @@
-"""
-Bulk Config Deployment Tool
-----------------------------
-Reads intended config from a YAML file (just host + commands) and
-pushes it to one or more devices, using credentials looked up from
-the shared device inventory. Stage 2 of the network automation
-toolkit.
-"""
+
  
 from netmiko import ConnectHandler
 import yaml
@@ -14,13 +7,13 @@ from devices import DEVICES, find_device
  
  
 def load_config_plan(path):
-    """Load the YAML file describing which hosts get which commands."""
+    """Load the YAML file """
     with open(path) as f:
         return yaml.safe_load(f)
  
  
 def push_config(device, commands):
-    """Open an SSH session and push a list of config commands."""
+    """Open an SSH session and push a list of config commands"""
     connection = ConnectHandler(**device)
  
     # send_config_set puts the device into config mode, sends each
