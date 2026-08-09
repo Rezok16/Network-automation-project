@@ -1,0 +1,10 @@
+devices:
+  - host: 192.168.20.2
+    username: kayden
+    password: kayden
+    commands:
+      - vlan 20
+      - name STUDENTS
+      - interface gigabitethernet0/1
+      - switchport mode access
+      - switchport access vlan 20

@@ -1,0 +1,27 @@
+devices:
+  - device_type: cisco_ios
+    host: 192.168.138.10
+    username: kayden
+    password: kayden
+    disabled_algorithms:
+      kex: []
+      pubkey: []
+ 
+  - device_type: cisco_ios
+    host: 192.168.20.2
+    username: kayden
+    password: kayden
+    disabled_algorithms:
+      kex: []
+      pubkey: []
+      mac: []
+ 
+  - device_type: cisco_ios
+    host: 192.168.30.2
+    username: kayden
+    password: kayden
+    disabled_algorithms:
+      kex: []
+      pubkey: []
+      mac: []
+ 

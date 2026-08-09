@@ -1,0 +1,4 @@
+netmiko
+pyyaml
+flask
+python-dotenv

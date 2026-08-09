@@ -1,0 +1,11 @@
+# Secrets — never commit real credentials
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Project data — device configs can contain sensitive details
+backups/
+baselines/

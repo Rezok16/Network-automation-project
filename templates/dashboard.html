@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>net-ctl</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0E11;
+    --panel: #12161B;
+    --panel-2: #0D1013;
+    --border: #232932;
+    --text: #E6E8EB;
+    --text-dim: #8B94A3;
+    --text-faint: #545C68;
+    --up: #3FB950;
+    --down: #E5534B;
+    --warn: #D4A72C;
+    --accent: #4B8BF4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    padding: 40px 24px 80px;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 28px;
+  }
+  header h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+  header h1 span { color: var(--text-faint); font-weight: 400; }
+  header .meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .device {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-bottom: 18px;
+  }
+  .device-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .led {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--down);
+    box-shadow: 0 0 0 3px rgba(229, 83, 75, 0.15);
+    flex-shrink: 0;
+  }
+  .led.online {
+    background: var(--up);
+    box-shadow: 0 0 0 3px rgba(63, 185, 80, 0.15);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .led.online { animation: pulse 2.4s ease-in-out infinite; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  .device-top h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .device-top .host {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-left: auto;
+  }
+  .device-top .status-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0 14px;
+  }
+  .configure {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .cmd-input {
+    flex: 1;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--text);
+    resize: vertical;
+    min-height: 60px;
+  }
+  .cmd-input::placeholder { color: var(--text-faint); }
+  .cmd-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .push-btn { align-self: flex-start; white-space: nowrap; }
+  button {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    background: #1A1F26;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  button:hover { border-color: var(--accent); background: #1D232C; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  button.primary { border-color: var(--accent); color: var(--accent); }
+  .console {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.65;
+    max-height: 260px;
+    overflow-y: auto;
+    color: var(--text-dim);
+  }
+  .console .line { white-space: pre-wrap; word-break: break-word; }
+  .console .prompt { color: var(--accent); }
+  .console .ok { color: var(--up); }
+  .console .bad { color: var(--down); }
+  .console .drift { color: var(--warn); }
+  .console .cursor {
+    display: inline-block;
+    width: 6px;
+    height: 12px;
+    background: var(--text-faint);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .cursor { animation: blink 1s step-end infinite; }
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>net-ctl <span>/ automation dashboard</span></h1>
+    <div class="meta">{{ devices|length }} device{{ 's' if devices|length != 1 }}</div>
+  </header>
+
+  {% for d in devices %}
+  <div class="device" data-host="{{ d.host }}">
+    <div class="device-top">
+      <span class="led {{ 'online' if d.online }}"></span>
+      <h2>{{ d.host }}</h2>
+      <span class="status-label">{{ 'reachable' if d.online else 'unreachable' }}</span>
+    </div>
+    <div class="actions">
+      <button class="primary" data-action="backup">Backup</button>
+      <button data-action="compliance">Check drift</button>
+      <button data-action="set-baseline">Set baseline</button>
+    </div>
+    <div class="configure">
+      <textarea class="cmd-input" rows="3" placeholder="interface gigabitethernet0/1&#10;description test&#10;..."></textarea>
+      <button class="primary push-btn" data-action="configure">Push config</button>
+    </div>
+    <div class="console" id="console-{{ loop.index }}">
+      <div class="line"><span class="prompt">{{ d.host }}#</span> <span class="cursor"></span></div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+document.querySelectorAll('.device').forEach(function (deviceEl) {
+  const host = deviceEl.dataset.host;
+  const consoleEl = deviceEl.querySelector('.console');
+  const buttons = deviceEl.querySelectorAll('button');
+
+  function appendLine(text, cls) {
+    const line = document.createElement('div');
+    line.className = 'line' + (cls ? ' ' + cls : '');
+    line.textContent = text;
+    consoleEl.insertBefore(line, consoleEl.lastElementChild);
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+  }
+
+  function setBusy(busy) {
+    buttons.forEach(function (b) { b.disabled = busy; });
+  }
+
+  buttons.forEach(function (btn) {
+    btn.addEventListener('click', async function () {
+      const action = btn.dataset.action;
+      setBusy(true);
+
+      let fetchOptions = { method: 'POST' };
+
+      if (action === 'configure') {
+        const textarea = deviceEl.querySelector('.cmd-input');
+        const commands = textarea.value.trim();
+        if (!commands) {
+          appendLine('enter at least one command first', 'bad');
+          setBusy(false);
+          return;
+        }
+        appendLine('pushing config...');
+        fetchOptions.headers = { 'Content-Type': 'application/json' };
+        fetchOptions.body = JSON.stringify({ commands: commands });
+      } else {
+        appendLine('running ' + action + '...');
+      }
+
+      try {
+        const res = await fetch('/api/' + action + '/' + host, fetchOptions);
+        const data = await res.json();
+
+        if (action === 'compliance') {
+          if (!data.ok) {
+            appendLine(data.message, 'bad');
+          } else if (data.drift) {
+            appendLine('DRIFT DETECTED', 'drift');
+            data.diff.forEach(function (l) { appendLine(l); });
+          } else {
+            appendLine(data.message, 'ok');
+          }
+        } else if (action === 'configure') {
+          appendLine(data.message, data.ok ? 'ok' : 'bad');
+          if (data.ok) {
+            appendLine(data.output || '', 'ok');
+            deviceEl.querySelector('.cmd-input').value = '';
+          }
+        } else {
+          appendLine(data.message, data.ok ? 'ok' : 'bad');
+        }
+      } catch (err) {
+        appendLine('request failed: ' + err.message, 'bad');
+      }
+      setBusy(false);
+    });
+  });
+});
+</script>
+</body>
+</html>
