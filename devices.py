@@ -41,5 +41,22 @@ def find_device(devices, host):
     return next((d for d in devices if d["host"] == host), None)
  
  
+def build_ad_hoc_device(host):
+    """
+    Build device connection details for a host that isn't in
+    devices.yaml — used for devices found via network scanning.
+    Uses the same shared credentials, with permissive legacy SSH
+    algorithm support since we don't know this device's quirks
+    ahead of time.
+    """
+    return {
+        "device_type": "cisco_ios",
+        "host": host,
+        "username": NET_USERNAME,
+        "password": NET_PASSWORD,
+        "disabled_algorithms": {"kex": [], "pubkey": [], "mac": []},
+    }
+ 
+ 
 DEVICES = load_devices()
  

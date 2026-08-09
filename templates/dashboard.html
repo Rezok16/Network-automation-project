@@ -34,7 +34,7 @@
     justify-content: space-between;
     border-bottom: 1px solid var(--border);
     padding-bottom: 16px;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
   }
   header h1 {
     font-family: 'IBM Plex Mono', monospace;
@@ -48,6 +48,55 @@
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
     color: var(--text-dim);
+  }
+  .scan-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 24px;
+  }
+  .scan-panel h3 {
+    margin: 0 0 4px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .scan-panel .hint {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-faint);
+    margin: 0 0 12px;
+  }
+  .scan-row {
+    display: flex;
+    gap: 8px;
+  }
+  .scan-input {
+    flex: 1;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .scan-input::placeholder { color: var(--text-faint); }
+  .scan-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .scan-status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 10px;
+  }
+  .scan-status.bad { color: var(--down); }
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 24px 0 10px;
   }
   .device {
     background: var(--panel);
@@ -72,7 +121,6 @@
   .led.online {
     background: var(--up);
     box-shadow: 0 0 0 3px rgba(63, 185, 80, 0.15);
-    animation: pulse 2.4s ease-in-out infinite;
   }
   @media (prefers-reduced-motion: no-preference) {
     .led.online { animation: pulse 2.4s ease-in-out infinite; }
@@ -86,16 +134,19 @@
     font-weight: 600;
     margin: 0;
   }
-  .device-top .host {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px;
-    color: var(--text-dim);
-    margin-left: auto;
-  }
   .device-top .status-label {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 11px;
     color: var(--text-faint);
+  }
+  .device-top .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-left: auto;
   }
   .actions {
     display: flex;
@@ -174,9 +225,21 @@
 <div class="wrap">
   <header>
     <h1>net-ctl <span>/ automation dashboard</span></h1>
-    <div class="meta">{{ devices|length }} device{{ 's' if devices|length != 1 }}</div>
+    <div class="meta">{{ devices|length }} configured</div>
   </header>
 
+  <div class="scan-panel">
+    <h3>Discover devices</h3>
+    <p class="hint">Scan any subnet for reachable SSH devices — not limited to devices.yaml</p>
+    <div class="scan-row">
+      <input class="scan-input" id="scan-subnet" type="text" placeholder="192.168.30.0/24" />
+      <button class="primary" id="scan-btn">Scan</button>
+    </div>
+    <div class="scan-status" id="scan-status"></div>
+  </div>
+
+  <div class="section-label">Configured devices</div>
+  <div id="configured-devices">
   {% for d in devices %}
   <div class="device" data-host="{{ d.host }}">
     <div class="device-top">
@@ -193,15 +256,51 @@
       <textarea class="cmd-input" rows="3" placeholder="interface gigabitethernet0/1&#10;description test&#10;..."></textarea>
       <button class="primary push-btn" data-action="configure">Push config</button>
     </div>
-    <div class="console" id="console-{{ loop.index }}">
+    <div class="console">
       <div class="line"><span class="prompt">{{ d.host }}#</span> <span class="cursor"></span></div>
     </div>
   </div>
   {% endfor %}
+  </div>
+
+  <div id="discovered-section" style="display:none;">
+    <div class="section-label">Discovered devices</div>
+    <div id="discovered-devices"></div>
+  </div>
 </div>
 
 <script>
-document.querySelectorAll('.device').forEach(function (deviceEl) {
+const knownHosts = new Set([{% for d in devices %}"{{ d.host }}",{% endfor %}]);
+
+function deviceCardHTML(host, online, tag) {
+  const ledClass = online ? 'online' : '';
+  const statusText = online ? 'reachable' : 'unreachable';
+  const tagHTML = tag ? '<span class="tag">' + tag + '</span>' : '';
+  return `
+    <div class="device" data-host="${host}">
+      <div class="device-top">
+        <span class="led ${ledClass}"></span>
+        <h2>${host}</h2>
+        <span class="status-label">${statusText}</span>
+        ${tagHTML}
+      </div>
+      <div class="actions">
+        <button class="primary" data-action="backup">Backup</button>
+        <button data-action="compliance">Check drift</button>
+        <button data-action="set-baseline">Set baseline</button>
+      </div>
+      <div class="configure">
+        <textarea class="cmd-input" rows="3" placeholder="interface gigabitethernet0/1&#10;description test&#10;..."></textarea>
+        <button class="primary push-btn" data-action="configure">Push config</button>
+      </div>
+      <div class="console">
+        <div class="line"><span class="prompt">${host}#</span> <span class="cursor"></span></div>
+      </div>
+    </div>
+  `;
+}
+
+function wireDeviceCard(deviceEl) {
   const host = deviceEl.dataset.host;
   const consoleEl = deviceEl.querySelector('.console');
   const buttons = deviceEl.querySelectorAll('button');
@@ -268,6 +367,69 @@ document.querySelectorAll('.device').forEach(function (deviceEl) {
       setBusy(false);
     });
   });
+}
+
+document.querySelectorAll('#configured-devices .device').forEach(wireDeviceCard);
+
+const scanBtn = document.getElementById('scan-btn');
+const scanStatus = document.getElementById('scan-status');
+const discoveredSection = document.getElementById('discovered-section');
+const discoveredContainer = document.getElementById('discovered-devices');
+const seenDiscovered = new Set();
+
+scanBtn.addEventListener('click', async function () {
+  const subnet = document.getElementById('scan-subnet').value.trim();
+  if (!subnet) {
+    scanStatus.textContent = 'enter a subnet first, e.g. 192.168.30.0/24';
+    scanStatus.className = 'scan-status bad';
+    return;
+  }
+
+  scanBtn.disabled = true;
+  scanStatus.textContent = 'scanning ' + subnet + '...';
+  scanStatus.className = 'scan-status';
+
+  try {
+    const res = await fetch('/api/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subnet: subnet }),
+    });
+    const data = await res.json();
+
+    if (!data.ok) {
+      scanStatus.textContent = data.message;
+      scanStatus.className = 'scan-status bad';
+      scanBtn.disabled = false;
+      return;
+    }
+
+    const newHosts = data.found.filter(function (h) {
+      return !knownHosts.has(h) && !seenDiscovered.has(h);
+    });
+
+    scanStatus.textContent = data.found.length === 0
+      ? 'no SSH-reachable devices found on ' + subnet
+      : `found ${data.found.length} device(s) on ${subnet}`;
+    scanStatus.className = 'scan-status';
+
+    newHosts.forEach(function (host) {
+      seenDiscovered.add(host);
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = deviceCardHTML(host, true, 'discovered');
+      const cardEl = wrapper.firstElementChild;
+      discoveredContainer.appendChild(cardEl);
+      wireDeviceCard(cardEl);
+    });
+
+    if (seenDiscovered.size > 0) {
+      discoveredSection.style.display = '';
+    }
+  } catch (err) {
+    scanStatus.textContent = 'scan failed: ' + err.message;
+    scanStatus.className = 'scan-status bad';
+  }
+  scanBtn.disabled = false;
 });
 </script>
 </body>
