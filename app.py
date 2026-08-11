@@ -1,13 +1,4 @@
-"""
-Network Automation Dashboard
-------------------------------
-A local web UI for the toolkit. Shows device status, lets you scan
-a subnet to discover devices, and trigger backups/compliance
-checks/config pushes from the browser instead of the CLI.
- 
-Run with: python app.py
-Then open http://127.0.0.1:5000 in your browser.
-"""
+
  
 from flask import Flask, render_template, jsonify, request
 import socket
@@ -38,11 +29,7 @@ def is_device_online(host, port=22, timeout=3, attempts=2):
  
  
 def resolve_device(host):
-    """
-    Look up a host's connection details — from devices.yaml if it's
-    a known device, or build them on the fly 
-    if it was found via network scanning instead.
-    """
+  
     return find_device(DEVICES, host) or build_ad_hoc_device(host)
  
  
