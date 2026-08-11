@@ -1,9 +1,4 @@
-"""
-Config Compliance / Drift Checker
------------------------------------
-Compares each device's live running-config against a saved baseline
- and reports any differences. 
-"""
+
  
 from netmiko import ConnectHandler
 import difflib
@@ -16,10 +11,7 @@ BASELINE_DIR = "baselines"
  
  
 def get_live_config(device):
-    """
-    Returns a combined snapshot of the device's state: running-config
-    plus VLAN database output.
-    """
+    
     connection = ConnectHandler(**device)
     running_config = connection.send_command("show running-config")
     vlan_brief = connection.send_command("show vlan brief")
@@ -33,7 +25,7 @@ def baseline_path(host):
  
  
 def set_baseline(device):
-    """Save the device's current config as its baseline."""
+    
     config = get_live_config(device)
     os.makedirs(BASELINE_DIR, exist_ok=True)
     with open(baseline_path(device["host"]), "w") as f:
@@ -42,9 +34,7 @@ def set_baseline(device):
  
  
 def check_compliance(device):
-    """
-    Compare live config against the saved baseline.
-    """
+    
     path = baseline_path(device["host"])
     if not os.path.exists(path):
         return None, f"No baseline for {device['host']} — run with --set-baseline first."
