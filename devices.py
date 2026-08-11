@@ -4,7 +4,7 @@ import os
 import yaml
 from dotenv import load_dotenv
  
-load_dotenv()  # reads .env into the environment, if present
+load_dotenv()  
  
 NET_USERNAME = os.environ.get("NET_USERNAME")
 NET_PASSWORD = os.environ.get("NET_PASSWORD")
@@ -29,7 +29,7 @@ def load_devices(path="devices.yaml"):
  
  
 def find_device(devices, host):
-    """Look up a single device's details by host IP."""
+
     return next((d for d in devices if d["host"] == host), None)
  
  
