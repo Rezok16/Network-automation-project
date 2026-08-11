@@ -1,9 +1,4 @@
-"""
-Network Config Backup Tool
----------------------------
-Connects to a device over SSH and saves its running-config to a
-timestamped file. 
-"""
+
  
 from netmiko import ConnectHandler
 from datetime import datetime
@@ -15,7 +10,7 @@ BACKUP_DIR = "backups"
  
  
 def backup_device(device):
-    """Connect to a single device and save its running-config."""
+    
     connection = ConnectHandler(**device)
  
     config_output = connection.send_command("show running-config")
@@ -26,7 +21,7 @@ def backup_device(device):
  
  
 def save_backup(hostname, config_text):
-    """Write the config to backups/"""
+   
     os.makedirs(BACKUP_DIR, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{BACKUP_DIR}/{hostname}_{timestamp}.txt"
