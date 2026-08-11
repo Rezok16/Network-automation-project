@@ -13,14 +13,13 @@ def load_config_plan(path):
  
  
 def push_config(device, commands):
-    """Open an SSH session and push a list of config commands"""
+    
     connection = ConnectHandler(**device)
  
-    # send_config_set puts the device into config mode, sends each
-    # command in order, then exits config mode automatically.
+    
     output = connection.send_config_set(commands)
  
-    connection.save_config()  # equivalent to 'write memory'
+    connection.save_config()  
     connection.disconnect()
  
     return output
